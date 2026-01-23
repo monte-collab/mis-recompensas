@@ -38,7 +38,7 @@
 <body>
 
 <div class="container">
-    <h1 style="color: var(--primary); margin-bottom: 0;">🌭 Doggo Club</h1>
+    <h1 style="color: var(--primary); margin-bottom: 0;">🌭 PANKO PATO REWARDS 🦆</h1>
     <p style="color: #64748b; margin-top: 5px;">Colecciona sellos y gana premios</p>
     
     <div class="card">
@@ -121,7 +121,6 @@
 
         document.getElementById('msg').innerText = `¡Llevas ${num} de 9 visitas!`;
 
-        // NUEVA LÓGICA DE PREMIOS EXACTOS
         let premio = "";
         
         if (num === 3) {
@@ -131,7 +130,6 @@
         } else if (num === 9) {
             premio = '<div class="prize-text">🏆 ¡META FINAL!<br> 1 Doggo Club o 1 Chili Doggie GRATIS</div>';
         } else {
-            // Si no es 3, 6 o 9, el cuadro de texto estará vacío
             premio = "";
         }
         
@@ -142,6 +140,7 @@
 </script>
 </body>
 </html>
+
 
 
 
