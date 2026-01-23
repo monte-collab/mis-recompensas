@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panko Rewards</title>
+    <title>Doggo Club Rewards</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root { --primary: #e63946; --bg: #fff1e6; --card: #ffffff; --text: #1e293b; --accent: #ffb703; --success: #2a9d8f; }
@@ -12,42 +12,25 @@
         .card { background: var(--card); border-radius: 30px; padding: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.1); border: 2px solid #f1dca7; }
         .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; margin-top: 25px; }
         
-        /* Contenedor del sello */
         .stamp { 
-            aspect-ratio: 1/1; 
-            border: 2px solid #e2e8f0; 
-            border-radius: 20px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            background: #fdfcf0;
-            transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            font-size: 2rem;
+            aspect-ratio: 1/1; border: 2px solid #e2e8f0; border-radius: 20px; 
+            display: flex; align-items: center; justify-content: center; 
+            background: #fdfcf0; transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            font-size: 2rem; position: relative;
         }
 
-        /* Icono del pan (vacío) */
-        .stamp i { color: #d6ccc2; }
+        .stamp i { color: #d6ccc2; } /* Color Pan */
 
-        /* Icono del hotdog completo (activo) */
-        .stamp.active { 
-            background: #51b8c9; 
-            border-color: #faea27; 
-            transform: scale(1.1) rotate(5deg);
-        }
-        .stamp.active i { color: #ffffff; } /* Color de la salchicha/pan cocido */
+        .stamp.active { background: var(--accent); border-color: #fb8500; transform: scale(1.1) rotate(5deg); }
+        .stamp.active i { color: #5e3023; } /* Color Hotdog */
 
-        /* Estilo para las metas con premio */
         .stamp.reward-node { border: 3px dashed var(--primary); }
-        .stamp.reward-node::after {
-            content: "🎁";
-            position: absolute;
-            top: -10px;
-            right: -5px;
-            font-size: 1rem;
-        }
+        .stamp.reward-node::after { content: "🎁"; position: absolute; top: -10px; right: -5px; font-size: 1rem; }
 
         #msg { font-weight: bold; margin: 15px 0; min-height: 1.5em; font-size: 1.1rem; }
-        .prize-text { color: var(--primary); font-size: 1.2rem; margin-top: 15px; font-weight: 800; background: #ffe5ec; padding: 10px; border-radius: 15px; border: 1px solid #ffb3c1; }
+        .prize-text { color: var(--primary); font-size: 1.2rem; margin-top: 15px; font-weight: 800; background: #ffe5ec; padding: 10px; border-radius: 15px; border: 1px solid #ffb3c1; animation: pulse 2s infinite; }
+        
+        @keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
         .loader { border: 4px solid #f3f3f3; border-top: 4px solid var(--primary); border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; display: inline-block; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
@@ -55,12 +38,12 @@
 <body>
 
 <div class="container">
-    <h1 style="color: #51b8c9; margin-bottom: 0;">🌭 PANKO PATO</h1>
-    <p style="color: #64748b; margin-top: 5px;">¡Llena tu tarjeta y obten recompensas!</p>
+    <h1 style="color: var(--primary); margin-bottom: 0;">🌭 Doggo Club</h1>
+    <p style="color: #64748b; margin-top: 5px;">Colecciona sellos y gana premios</p>
     
     <div class="card">
         <div id="loader" class="loader"></div>
-        <div id="msg">Cargando...</div>
+        <div id="msg">Verificando acceso...</div>
         
         <div class="grid" id="grid">
             <div class="stamp" id="s1"><i class="fa-solid fa-bread-slice"></i></div>
@@ -79,42 +62,48 @@
 </div>
 
 <script>
-    // --- CONFIGURACIÓN ---
-    const URL_SHEETS = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRbXL1Y_NsoPSaYsTJ5OJCQjFemmQTj94AkZku0bxSi4oKvbpJ9KOHwkXE0mgXxmLZA40uwv4rkV1WG/pub?output=csv"; // REEMPLAZA ESTO
-    
+    // --- SEGURIDAD ---
+    // 1. Ve a https://www.base64encode.org/
+    // 2. Codifica tu link de Google Sheets (CSV) y pégalo aquí:
+    const DATA_KEY = "aHR0cHM6Ly9kb2NzLmdvb2dsZS5jb20vc3ByZWFkc2hlZXRzL2QvZS8yUEFDWC0xdlJiWEwxWV9Oc29QU2FZc1RKNU9KQ1FqRmVtbVFUajk0QWtaa3UwYnhTaTRvS3ZicEo5S09Id2tYRTBtZ1h4bUxaQTQwdXd2NHJrVjFXRy9wdWJodG1s"; 
+
     const params = new URLSearchParams(window.location.search);
     const clienteId = params.get('id');
 
+    function getStore() { try { return atob(DATA_KEY); } catch(e) { return ""; } }
+
     async function consultarSellos() {
+        const msg = document.getElementById('msg');
         if (!clienteId) {
-            document.getElementById('msg').innerText = "Muestra tu código para sellar.";
+            msg.innerText = "Por favor, escanea tu código QR personal.";
             document.getElementById('loader').style.display = 'none';
             return;
         }
 
         try {
-            const respuesta = await fetch(URL_SHEETS + "&cache=" + Math.random());
+            const respuesta = await fetch(getStore() + "&nocache=" + Date.now());
             const data = await respuesta.text();
-            const filas = data.split("\n");
+            const filas = data.replace(/[<>]/g, "").split("\n");
             
             let sellos = 0;
             let existe = false;
 
-            filas.forEach(fila => {
+            for (let fila of filas) {
                 const col = fila.split(",");
                 if (col[0] && col[0].trim().toLowerCase() === clienteId.toLowerCase()) {
-                    sellos = parseInt(col[1]);
+                    sellos = parseInt(col[1]) || 0;
                     existe = true;
+                    break;
                 }
-            });
+            }
 
             if (existe) {
-                actualizarVista(sellos);
+                actualizarVista(Math.min(sellos, 9));
             } else {
-                document.getElementById('msg').innerText = "Cliente no registrado.";
+                msg.innerText = "ID de cliente no registrado.";
             }
         } catch (e) {
-            document.getElementById('msg').innerText = "Error de conexión.";
+            msg.innerText = "Error de conexión con la base de datos.";
         }
         document.getElementById('loader').style.display = 'none';
     }
@@ -126,11 +115,9 @@
         stamps.forEach((s, i) => {
             if (i < num) {
                 s.classList.add('active');
-                // Cambiamos el icono a Hotdog completo
                 s.innerHTML = '<i class="fa-solid fa-hotdog"></i>';
             } else {
                 s.classList.remove('active');
-                // Devolvemos el icono a solo pan
                 s.innerHTML = '<i class="fa-solid fa-bread-slice"></i>';
             }
         });
@@ -139,11 +126,11 @@
 
         let premio = "";
         if (num >= 9) {
-            premio = '<div class="prize-text">🏆 ¡META FINAL!<br>Doggo Club o Chili GRATIS</div>';
+            premio = '<div class="prize-text">🏆 DOGGO CLUB O CHILI GRATIS</div>';
         } else if (num >= 6) {
-            premio = '<div class="prize-text">🌭 ¡LOGRADO!<br>Doggo Street GRATIS</div>';
+            premio = '<div class="prize-text">🌭 DOGGO STREET GRATIS</div>';
         } else if (num >= 3) {
-            premio = '<div class="prize-text">🎨 ¡GENIAL!<br>Sticker GRATIS</div>';
+            premio = '<div class="prize-text">🎨 STICKER GRATIS</div>';
         }
         prizeDisplay.innerHTML = premio;
     }
